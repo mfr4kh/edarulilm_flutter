@@ -1,19 +1,43 @@
 import 'package:flutter/material.dart';
-import 'register_page.dart';
+import 'package:http/http.dart' as http;
+
 import 'home_page.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool passwordVisible = false;
+
+  Future<void> login() async {
+    final response = await http.post(
+      Uri.parse('http://localhost:5245/api/User/authenticate'),
+      body: {
+        'userEmail': emailController.text.toString(),
+        'userPassword': passwordController.text.toString()
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // Handle successful login
+      // Navigate to the home page or handle the response
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(title: '',)));
+    } else {
+      // Handle login error
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Login')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
               controller: emailController,
@@ -21,26 +45,22 @@ class LoginPage extends StatelessWidget {
             ),
             TextField(
               controller: passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,
+              obscureText: !passwordVisible,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                suffixIcon: IconButton(
+                  icon: Icon(passwordVisible ? Icons.visibility : Icons.visibility_off),
+                  onPressed: () {
+                    setState(() {
+                      passwordVisible = !passwordVisible;
+                    });
+                  },
+                ),
+              ),
             ),
-            SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                // Handle login logic here
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => HomePage(title: ' ',)),
-                );
-              },
-              child: Text('Login'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => RegisterPage()),
-                );
-              },
-              child: Text('Register'),
+              onPressed: login,
+              child: Text('LOGIN'),
             ),
           ],
         ),
